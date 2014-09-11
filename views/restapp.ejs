@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Awesome Restaurants in the San Francisco Bay Area</title>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="description" content="Top of the line popular restaurants with the must-eat items in SF BayArea"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:title" content="Awesome Restaurants in the San Francisco Bay Area"/>
+    <meta property="og:url" content="http://codective.github.io/bestofthebay/"/>
+    <meta property="og:image" content="http://www.restaurantnews.com/wp-content/uploads/2014/03/First-Watch-Restaurants-Smoked-Salmon-Roasted-Vegetable-Frittata.jpg"/>
+    <meta property="og:site_name" content="BestOfTheBay"/>
+    <meta property="og:description" content="Top of the line popular restaurants with the must-eat items in SF BayArea"/>
+<!--
+    <link rel="stylesheet" href="main.css">
+-->
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css"> 
+
+    <style>
+        .item {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <header class="head">
+        <h1 style="font-size: 60px;"><b>Best of The Bay</b></h1>
+    </header>
+    <div class="row">
+        <div class="col-sm-6">
+            <br><br><div class="lead" style="font-size: 30px;">Pick a Restaurant</div>
+            <ul id="resListContainer" class="list-unstyled">
+            </ul>
+        </div>
+        <div class="col-sm-6">
+            <form action="orders.html" method="POST" class="form-horizontal">
+                <br><br><div class="lead"><span style="font-size: 30px;">Select Menu Items</span></div>
+                <ul style="font-size: 25px;" id="itemListContainer" class="list-unstyled">
+                </ul>
+
+                <section style="text-align: center;">
+                    <br><br>
+                    <div id="count"></div>
+                    <div id="total"></div>
+                </section>
+                <section class="user">
+                    <div class="well">
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <input id="email" type="email" name="email" placeholder="Email address" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <textarea id="notes" placeholder="Special Instructions" class="form-control" /></textarea>
+                                <div id="notesCounter" class="help-block">Any order modifications?</div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-8">
+                                <input id="phone" type="number" name="number" placeholder="Phone Number" class="form-control" />
+                            </div>
+                            <div class="col-sm-4">
+                                <button id="submit" type="submit" class="button">Order</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </form>
+        </div>
+    </div>
+
+    <ul id="github">
+
+    </ul>
+    <footer>
+        Copyright Coding House FI 2014 - Swati Kumar
+    </footer>
+</div>
+
+<script id="resList" type="text/x-handlebars-template">
+    {{#each list}}
+    <li><a class="restaurant" href="#" id="{{id}}">{{attributes.name}}</a></li>
+    {{/each}}
+</script>
+
+<script id="itemList" type="text/x-handlebars-template">
+    {{#each itemList}}
+    <li class="item" data-source={{attributes.restaurant_id}} style="display: none;"><input type="checkbox"> {{attributes.title}} Price $ {{attributes.price}}</li>
+    {{/each}}
+</script>
+
+<script>
+Parse.initialize("0CvaUuN15ZEEUOih8x4FXx82V85Tq162yvsAOyLL", "aJ2A8q3bktTiX4GS7vLu5UNLyQm7RDcCl3SWLer0");
+
+$(document).ready(function(){
+    $(function() {
+
+        $("#resListContainer").on("click", ".restaurant", function () {
+            $(".item").hide().filter("[data-source=" + this.id + "]").show();
+        });
+
+        $("#notes").on("keyup", function () {
+            $("#notesCounter").text($(this).val().length);
+            $("#notes").css("background-color", this.value.length > 10 ? "#ff7777" : "#fff");
+
+            //if (this.value.length > 10) {
+            //    $("#notes").css("background-color", "#ff7777");
+            //} else {
+            //    $("#notes").css("background-color", "#fff");
+            //}
+        });
+
+        var source = $("#resList").html();
+        var template = Handlebars.compile(source);
+
+        var refreshList = function (data) {
+            var html = template(data);
+            $("#resListContainer").html(html);
+        };
+
+
+        var Restaurant = Parse.Object.extend("Restaurant");
+        var query = new Parse.Query(Restaurant);
+        query.find({
+            success: function (results) {
+                var context = { list: results };
+                refreshList(context);
+
+//                var restaurants = [];
+//                console.log(results);
+//                results.forEach(function (r, i) {
+//                    a = $("<a/>", { class: 'restaurant', id: r.id, text: r.attributes.name });
+//                    restaurants.push($("<li />").append(a));
+//                });
+//
+//                $("#resList").append(restaurants);
+            },
+            error: function (error) {
+                alert("Error: " + error.code + " " + error.message);
+            }
+        });
+
+        var sourceTwo = $("#itemList").html();
+        var templateTwo = Handlebars.compile(sourceTwo);
+
+        var refreshListTwo = function (data) {
+            var htmlTwo = templateTwo(data);
+            $("#itemListContainer").html(htmlTwo);
+        }
+
+        var MenuItem = Parse.Object.extend("MenuItem");
+        var query1 = new Parse.Query(MenuItem);
+        query1.find({
+            success: function (results) {
+                var context = { itemList: results };
+                refreshList(context);
+
+//                var li, menuItem = [];
+//
+//                results.forEach(function (mi, i) {
+//                    var cb = $("<input />", { "type": "checkbox", "class": "checked", "data-price": mi.attributes.price });
+//                    menuItem.push($("<li />", { "class": 'item', "data-source": mi.attributes.restaurant_id }).append(cb).append(" " + mi.attributes.title).append(" $" + mi.attributes.price));
+//                });
+//
+//                $("#itemList").append(menuItem);
+
+                var sum = 0;
+                $(".checked").on("click", function () {
+                    if ($(this).is(':checked')) {
+                        sum = sum + parseInt($(this).attr("data-price"));
+                    } else {
+                        sum = sum - parseInt($(this).attr("data-price"));
+                    }
+
+                    $("#count").text($("input:checked").length + " item(s)");
+                    $("#total").text("Total: $" + sum);
+
+                })
+
+
+                $(".item").hide();
+
+                $("#resList").on("change", function (event) {
+
+                    $("option:selected").each(function () {
+                        $(".item").hide().filter("[data-source=" + this.id + "]").show();
+                    });
+                    $("option:selected").hide().filter("[data-source=" + this.id + "]").show();
+                    $("li").each(function () {
+                        $(this).children('input')[0].checked = false;
+                    });
+
+                    sum = 0;
+                    $("#count").text($("input:checked").length + " item(s)");
+                    $("#total").text("Total: $" + sum);
+
+                })
+            },
+            error: function (error) {
+                alert("Error: " + error.code + " " + error.message);
+            }
+        });
+
+
+        //parsedata();
+
+        var newOrder = function (email, notes, phone_number, menu_item) {
+            var submit = Parse.Object.extend("Order");
+            var menu = new submit();
+
+            menu.set("email_address", email);
+            menu.set("notes", notes);
+            menu.set("phone_number", phone_number);
+            menu.set("menu_item", menu_item);
+
+            menu.save(null, {
+                success: function (menu) {
+
+                },
+                error: function (menu, error) {
+
+                }
+            });
+        };
+
+        $('#submit').on('click', function (e) {
+            e.preventDefault();
+            var user = $('.user');
+            var phone = user.find("#phone").val();
+            var email = user.find("#email").val();
+            var note = user.find("#notes").val();
+            var menu_item = [];
+            $('#itemList  li').each(function () {
+                if ($(this).children('input')[0].checked) {
+                    menu_item.push($(this).text());
+                }
+            });
+            menu_item = menu_item.join(",");
+
+            newOrder(email, note, phone, menu_item);
+        });
+
+        $('.button').click(function () {
+            window.location.href = 'orders.html';
+        });
+
+        var order = Parse.Object.extend("Order");
+        var query3 = new Parse.Query(order);
+        query3.find({
+            success: function (results) {
+                results.forEach(function (o, i) {
+                    $('tbody').prepend("<tr><td>" + o.attributes.menu_item + " </td><td>" + o.attributes.email_address + "</td><td> " + o.attributes.phone_number + " </td><td> " + o.attributes.notes + " </td> </tr>");
+                });
+                console.log(results);
+            },
+
+            error: function (err) {
+
+            }
+        });
+
+        $('#tinySort').on("click", function () {
+            $('tbody tr').tsort("td");
+            alert(this);
+        });
+    })
+});
+
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+<script src="http://www.parsecdn.com/js/parse-1.2.19.min.js"></script>
+<script src="http://builds.handlebarsjs.com.s3.amazonaws.com/handlebars-v2.0.0.js"></script>
+
+<!--
+<script src="restaurant1.js"></script>
+-->
+</body>
+</html>
+
